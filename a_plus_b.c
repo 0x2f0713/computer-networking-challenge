@@ -29,6 +29,9 @@ char req_buff[1024], res_buff[1024];
 size_t buff_len;
 int fd;
 
+/* Encoder function, interface template: void encodeXXX(char* buff, size_t* buff_len, ...) */
+
+
 void encodeHello(char* buff, size_t* buff_len) {
     header_t header = {
         type : PKT_HELLO,
@@ -101,15 +104,19 @@ int main() {
     }
     dest.sin_family = AF_INET;
     dest.sin_port = htons(PORT);
+    // Create file descriptor
     fd = socket(AF_INET, SOCK_STREAM, 0);
+    // SYN to server
     if ((connect(fd, (struct sockaddr*)&dest,
                    sizeof(dest)))
         < 0) {
         printf("\nConnection Failed \n");
         return -1;
     }
+    // Send PKT_HELLO after TCP handshake successfully
     encodeHello(req_buff, &buff_len);
     send(fd, req_buff, 16, 0);
+    // Recv data from server until connection FIN
     while (!rst && ret != SOCKET_NOK)
     {
         if (recv(fd, res_buff, 1024, 0) > -1)
